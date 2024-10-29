@@ -1,0 +1,58 @@
+name: FLASH usage analysis
+
+on:
+  push:
+    branches:
+      - 'main'
+  pull_request:
+    branches:
+      - '*'
+
+jobs:
+  compile_prev:
+    name: Build code before the change
+    runs-on: ubuntu-latest
+    container:
+      image: px4io/px4-dev-nuttx-focal
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Build
+        run: make px4_fmu-v6x
+      - name: Store the ELF before the change
+        run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./before-change.elf
+
+  compile_curr:
+    name: Build code with the change
+    runs-on: ubuntu-latest
+    container:
+      image: px4io/px4-dev-nuttx-focal
+    steps:
+      - name: Clean previous build
+        run: |
+          make clean
+          make distclean
+      - name: If it's a PR checkout the base commit
+        if: ${{ github.event.pull_request }}
+        run: git checkout ${{ github.event.pull_request.base.sha }}
+      - name: If it's a push checkout the previous commit
+        if: ${{ github.event.push }}
+        run: git checkout ${{ github.event.before }}
+      - name: Update submodules
+        run: make submodulesupdate
+      - name: Build
+        run: make px4_fmu-v6x
+      - name: Store the ELF with the change
+        run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./with-change.elf
+
+  analyze_flash:
+    name: Analyze flash uage
+    runs-on: ubuntu-latest
+    steps:
+      - name: bloaty-action
+        uses: carlosperate/bloaty-action@v1.1.0
+        with:
+          bloaty-args: -d compileunits ./before-change.elf -- ./with-change.elf
+          output-to-summary: true
+            
