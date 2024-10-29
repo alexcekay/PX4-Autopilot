@@ -19,8 +19,13 @@ jobs:
         with:
           fetch-depth: 0
           submodules: recursive
+
+      - name: Git ownership workaround
+        run: git config --system --add safe.directory '*'
+
       - name: Build
         run: make px4_fmu-v6x
+
       - name: Store the ELF before the change
         run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./before-change.elf
 
@@ -35,16 +40,21 @@ jobs:
         run: |
           make clean
           make distclean
+
       - name: If it's a PR checkout the base commit
         if: ${{ github.event.pull_request }}
         run: git checkout ${{ github.event.pull_request.base.sha }}
+
       - name: If it's a push checkout the previous commit
         if: ${{ github.event.push }}
         run: git checkout ${{ github.event.before }}
+
       - name: Update submodules
         run: make submodulesupdate
+
       - name: Build
         run: make px4_fmu-v6x
+
       - name: Store the ELF with the change
         run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./with-change.elf
 
