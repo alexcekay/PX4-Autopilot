@@ -9,8 +9,8 @@ on:
       - '*'
 
 jobs:
-  compile_prev:
-    name: Build code before the change
+  analyze_flash:
+    name: FLASH usage analysis
     runs-on: ubuntu-latest
     container:
       image: px4io/px4-dev-nuttx-focal
@@ -26,16 +26,9 @@ jobs:
       - name: Build
         run: make px4_fmu-v6x
 
-      - name: Store the ELF before the change
-        run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./before-change.elf
+      - name: Store the ELF with the change
+        run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./with-change.elf
 
-  compile_curr:
-    name: Build code with the change
-    runs-on: ubuntu-latest
-    needs: compile_prev
-    container:
-      image: px4io/px4-dev-nuttx-focal
-    steps:
       - name: Clean previous build
         run: |
           make clean
@@ -55,17 +48,11 @@ jobs:
       - name: Build
         run: make px4_fmu-v6x
 
-      - name: Store the ELF with the change
-        run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./with-change.elf
+      - name: Store the ELF before the change
+        run: cp ./build/px4_fmu-v6x_default/px4_fmu-v6x_default.elf ./before-change.elf
 
-  analyze_flash:
-    name: Analyze flash uage
-    runs-on: ubuntu-latest
-    needs: compile_curr
-    steps:
       - name: bloaty-action
         uses: carlosperate/bloaty-action@v1.1.0
         with:
           bloaty-args: -d compileunits ./before-change.elf -- ./with-change.elf
           output-to-summary: true
-
