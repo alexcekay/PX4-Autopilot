@@ -53,6 +53,19 @@ jobs:
 
       - name: bloaty-action
         uses: carlosperate/bloaty-action@v1.1.0
+        id: bloaty-step
         with:
-          bloaty-args: -d compileunits ./before-change.elf -- ./with-change.elf
+          bloaty-args: -d sections,compileunits -n 0 ./with-change.elf -- ./before-change.elf
           output-to-summary: true
+
+      - name: If it's a PR add a comment with the bloaty output
+        if: ${{ github.event.pull_request }}
+        uses: actions/github-script@v6
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '## Bloaty output\n```\n${{ steps.bloaty-step.outputs.bloaty-output-encoded }}```\n'
+            })
