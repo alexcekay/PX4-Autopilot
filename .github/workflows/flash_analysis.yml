@@ -86,16 +86,16 @@ jobs:
                '## Bloaty output',
                '### px4_fmu-v5x',
                '<details>',
-               '${{ needs.analyze_flash.outputs.px4_fmu-v5x }}',
+               '```\n${{ needs.analyze_flash.outputs.px4_fmu-v5x }}```',
                '</details>',
                '### px4_fmu-v6x',
                '<details>',
-               '${{ needs.analyze_flash.outputs.px4_fmu-v6x }}',
+               '```\n${{ needs.analyze_flash.outputs.px4_fmu-v6x }}```',
                '</details>'
             ]
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: comment.join()
+              body: comment.join('\n')
             })
