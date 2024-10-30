@@ -17,6 +17,9 @@ jobs:
     strategy:
       matrix:
         target: [px4_fmu-v5x, px4_fmu-v6x]
+    outputs:
+      px4_fmu-v5x: ${{ steps.gen-output.outputs.output_px4_fmu-v5x }}
+      px4_fmu-v6x: ${{ steps.gen-output.outputs.output_px4_fmu-v6x }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -61,14 +64,34 @@ jobs:
           bloaty-args: -d sections,compileunits -n 0 ./with-change.elf -- ./before-change.elf
           output-to-summary: true
 
+      - name: Generate output
+        id: gen-output
+        run: echo "output_${{ matrix.target }}=${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> "$GITHUB_OUTPUT"
+
+  post_pr_comment:
+    name: Post PR comment
+    runs-on: ubuntu-latest
+    needs: [analyze_flash]
+    steps:
       - name: If it's a PR add a comment with the bloaty output
         if: ${{ github.event.pull_request }}
         uses: actions/github-script@v6
         with:
           script: |
+            const comment = [
+               '## Bloaty output',
+               '### px4_fmu-v5x',
+               '<details>',
+               '${{ needs.analyze_flash.outputs.px4_fmu-v5x }}',
+               '</details>',
+               '### px4_fmu-v6x',
+               '<details>',
+               '${{ needs.analyze_flash.outputs.px4_fmu-v6x }}',
+               '</details>'
+            ]
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
               repo: context.repo.repo,
-              body: '## Bloaty output (${{ matrix.target }})\n```\n${{ steps.bloaty-step.outputs.bloaty-output-encoded }}```\n'
+              body: comment.join()
             })
