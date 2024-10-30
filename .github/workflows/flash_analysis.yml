@@ -42,7 +42,7 @@ jobs:
         run: git checkout ${{ github.event.pull_request.base.sha }}
 
       - name: If it's a push checkout the previous commit
-        if: ${{ github.event.push }}
+        if: github.event_name == 'push'
         run: git checkout ${{ github.event.before }}
 
       - name: Update submodules
