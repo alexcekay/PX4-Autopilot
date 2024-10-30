@@ -66,7 +66,11 @@ jobs:
 
       - name: Generate output
         id: gen-output
-        run: echo "output_${{ matrix.target }}=${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> "$GITHUB_OUTPUT"
+        run: |
+          EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
+          echo "output_${{ matrix.target }}<<$EOF" >> $GITHUB_OUTPUT
+          echo "${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
   post_pr_comment:
     name: Post PR comment
