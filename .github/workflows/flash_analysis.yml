@@ -64,6 +64,14 @@ jobs:
           bloaty-args: -d sections,compileunits -n 0 ./with-change.elf -- ./before-change.elf
           output-to-summary: true
 
+      - name: Upload Artifcats
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifact
+          path: |
+            ./with-change.elf
+            ./before-change.elf
+
       - name: Generate output
         id: gen-output
         run: |
