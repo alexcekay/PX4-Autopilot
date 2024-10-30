@@ -96,7 +96,7 @@ jobs:
                '### px4_fmu-v6x',
                '<details>',
                '<summary>Bloaty output</summary>',
-               ''
+               '',
                '```',
                `${{ needs.analyze_flash.outputs.px4_fmu-v6x }}`,
                '```',
