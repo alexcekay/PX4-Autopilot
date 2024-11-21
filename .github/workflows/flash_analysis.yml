@@ -79,10 +79,10 @@ jobs:
           echo "${{ matrix.target }}-bloaty-output-encoded<<$EOF" >> $GITHUB_OUTPUT
           echo "${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
-          echo "${{ matrix.target }}-bloaty-total-file-percentage=${{ steps.bloaty-step.outputs.bloaty-total-file-percentage }}" >> "$GITHUB_OUTPUT
-          echo "${{ matrix.target }}-bloaty-total-file-absolute=${{ steps.bloaty-step.outputs.bloaty-total-file-absolute }}" >> "$GITHUB_OUTPUT
-          echo "${{ matrix.target }}-bloaty-total-vm-percentage=${{ steps.bloaty-step.outputs.bloaty-total-vm-percentage }}" >> "$GITHUB_OUTPUT
-          echo "${{ matrix.target }}-bloaty-total-vm-absolute=${{ steps.bloaty-step.outputs.bloaty-total-vm-absolute }}" >> "$GITHUB_OUTPUT
+          echo "${{ matrix.target }}-bloaty-total-file-percentage=${{ steps.bloaty-step.outputs.bloaty-total-file-percentage }}" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.target }}-bloaty-total-file-absolute=${{ steps.bloaty-step.outputs.bloaty-total-file-absolute }}" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.target }}-bloaty-total-vm-percentage=${{ steps.bloaty-step.outputs.bloaty-total-vm-percentage }}" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.target }}-bloaty-total-vm-absolute=${{ steps.bloaty-step.outputs.bloaty-total-vm-absolute }}" >> "$GITHUB_OUTPUT"
 
   post_pr_comment:
     name: Post PR comment
