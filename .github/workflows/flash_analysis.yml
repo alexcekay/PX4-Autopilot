@@ -8,6 +8,9 @@ on:
     branches:
       - '*'
 
+env:
+  MIN_FLASH_DIFF_FOR_COMMENT: 50
+
 jobs:
   analyze_flash:
     name: FLASH usage analysis
@@ -90,14 +93,19 @@ jobs:
     needs: [analyze_flash]
     steps:
       - name: If it's a PR add a comment with the bloaty output
-        if: ${{ github.event.pull_request }}
+        if: |
+          ${{ github.event.pull_request }} &&
+          (
+          fromJSON(${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-absolute }}) > $MIN_FLASH_DIFF_FOR_COMMENT ||
+          fromJSON(${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-absolute }}) > $MIN_FLASH_DIFF_FOR_COMMENT
+          )
         uses: actions/github-script@v6
         with:
           script: |
             const comment = [
                '## FLASH Analysis',
                '<details>',
-               '<summary>px4_fmu-v5x [VM Diff: ${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-absolute }} (${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-percentage }})]</summary>',
+               '<summary>px4_fmu-v5x [Total VM Diff: ${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-absolute }} (${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-percentage }})]</summary>',
                '',
                '```',
                `${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-output-encoded }}`,
@@ -105,7 +113,7 @@ jobs:
                '</details>',
                '',
                '<details>',
-               '<summary>px4_fmu-v6x [VM Diff: ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-absolute }} (${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-percentage }})]</summary>',
+               '<summary>px4_fmu-v6x [Total VM Diff: ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-absolute }} (${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-percentage }})]</summary>',
                '',
                '```',
                `${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-output-encoded }}`,
