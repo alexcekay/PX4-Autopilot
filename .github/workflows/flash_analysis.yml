@@ -9,7 +9,8 @@ on:
       - '*'
 
 env:
-  MIN_FLASH_DIFF_FOR_COMMENT: 50
+  MIN_FLASH_POS_DIFF_FOR_COMMENT: 50
+  MIN_FLASH_NEG_DIFF_FOR_COMMENTS: -50
 
 jobs:
   analyze_flash:
@@ -93,10 +94,10 @@ jobs:
         if: |
           github.event.pull_request &&
           (
-          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT) ||
-          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < -1 * fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT) ||
-          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT) ||
-          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) < -1 * fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT)
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS)
           )
         uses: actions/github-script@v6
         with:
