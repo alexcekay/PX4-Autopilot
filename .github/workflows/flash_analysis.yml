@@ -79,7 +79,7 @@ jobs:
           echo "${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
           echo "${{ matrix.target }}-bloaty-summary-map<<$EOF" >> $GITHUB_OUTPUT
-          echo "${{ steps.bloaty-step.outputs.bloaty-summary-map }}" >> $GITHUB_OUTPUT
+          echo '${{ steps.bloaty-step.outputs.bloaty-summary-map }}' >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
 
   post_pr_comment:
