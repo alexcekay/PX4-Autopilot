@@ -105,7 +105,7 @@ jobs:
             const comment = [
                '## 🔎 FLASH Analysis',
                '<details>',
-               '<summary>px4_fmu-v5x [Total VM Diff: ${{ fromJSON(env.V5X-SUMMARY-MAP).vm-absolute }} (${{ fromJSON(env.V5X-SUMMARY-MAP).vm-percentage }})]</summary>',
+               '<summary>px4_fmu-v5x [Total VM Diff: ${{ fromJSON(env.V5X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V5X-SUMMARY-MAP).vm-percentage }} %)]</summary>',
                '',
                '```',
                `${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-output-encoded }}`,
@@ -113,7 +113,7 @@ jobs:
                '</details>',
                '',
                '<details>',
-               '<summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} (${{ fromJSON(env.V6X-SUMMARY-MAP).vm-percentage }})]</summary>',
+               '<summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V6X-SUMMARY-MAP).vm-percentage }} %)]</summary>',
                '',
                '```',
                `${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-output-encoded }}`,
