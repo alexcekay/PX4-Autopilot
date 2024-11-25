@@ -66,7 +66,8 @@ jobs:
         uses: PX4/bloaty-action@v1.0.0
         id: bloaty-step
         with:
-          bloaty-args: -d sections,compileunits -s vm -n 0 ./with-change.elf -- ./before-change.elf
+          bloaty-file-args: ./with-change.elf -- ./before-change.elf
+          bloaty-additional-args: -d sections,compileunits -s vm -n 0
           output-to-summary: true
 
       - name: Generate output
@@ -92,8 +93,10 @@ jobs:
         if: |
           github.event.pull_request &&
           (
-          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT ||
-          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < -1 * fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) < -1 * fromJSON(env.MIN_FLASH_DIFF_FOR_COMMENT)
           )
         uses: actions/github-script@v6
         with:
