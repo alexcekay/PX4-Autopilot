@@ -96,8 +96,8 @@ jobs:
         if: |
           github.event.pull_request &&
           (
-          fromJSON(needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-absolute) > $MIN_FLASH_DIFF_FOR_COMMENT ||
-          fromJSON(needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-absolute) > $MIN_FLASH_DIFF_FOR_COMMENT
+          fromJSON(needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT ||
+          fromJSON(needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT
           )
         uses: actions/github-script@v6
         with:
