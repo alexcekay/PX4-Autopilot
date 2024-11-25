@@ -22,15 +22,9 @@ jobs:
         target: [px4_fmu-v5x, px4_fmu-v6x]
     outputs:
       px4_fmu-v5x-bloaty-output-encoded: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-output-encoded }}
-      px4_fmu-v5x-bloaty-total-file-percentage: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-total-file-percentage }}
-      px4_fmu-v5x-bloaty-total-file-absolute: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-total-file-absolute }}
-      px4_fmu-v5x-bloaty-total-vm-percentage: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-total-vm-percentage }}
-      px4_fmu-v5x-bloaty-total-vm-absolute: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-total-vm-absolute }}
+      px4_fmu-v5x-bloaty-summary-map: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-summary-map }}
       px4_fmu-v6x-bloaty-output-encoded: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-output-encoded }}
-      px4_fmu-v6x-bloaty-total-file-percentage: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-total-file-percentage }}
-      px4_fmu-v6x-bloaty-total-file-absolute: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-total-file-absolute }}
-      px4_fmu-v6x-bloaty-total-vm-percentage: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-total-vm-percentage }}
-      px4_fmu-v6x-bloaty-total-vm-absolute: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-total-vm-absolute }}
+      px4_fmu-v6x-bloaty-summary-map: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-summary-map }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -82,22 +76,24 @@ jobs:
           echo "${{ matrix.target }}-bloaty-output-encoded<<$EOF" >> $GITHUB_OUTPUT
           echo "${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
-          echo "${{ matrix.target }}-bloaty-total-file-percentage=${{ steps.bloaty-step.outputs.bloaty-total-file-percentage }}" >> "$GITHUB_OUTPUT"
-          echo "${{ matrix.target }}-bloaty-total-file-absolute=${{ steps.bloaty-step.outputs.bloaty-total-file-absolute }}" >> "$GITHUB_OUTPUT"
-          echo "${{ matrix.target }}-bloaty-total-vm-percentage=${{ steps.bloaty-step.outputs.bloaty-total-vm-percentage }}" >> "$GITHUB_OUTPUT"
-          echo "${{ matrix.target }}-bloaty-total-vm-absolute=${{ steps.bloaty-step.outputs.bloaty-total-vm-absolute }}" >> "$GITHUB_OUTPUT"
+          echo "${{ matrix.target }}-bloaty-summary-map<<$EOF" >> $GITHUB_OUTPUT
+          echo "${{ steps.bloaty-step.outputs.bloaty-summary-map }}" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
 
   post_pr_comment:
     name: Post PR comment
     runs-on: ubuntu-latest
     needs: [analyze_flash]
+    env:
+      V5X-SUMMARY-MAP: ${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-summary-map }}
+      V6X-SUMMARY-MAP: ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-summary-map }}
     steps:
       - name: If it's a PR and the FLASH diff is large enough, add a comment with the bloaty output
         if: |
           github.event.pull_request &&
           (
-          fromJSON(needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT ||
-          fromJSON(needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > env.MIN_FLASH_DIFF_FOR_COMMENT
           )
         uses: actions/github-script@v6
         with:
@@ -105,7 +101,7 @@ jobs:
             const comment = [
                '## 🔎 FLASH Analysis',
                '<details>',
-               '<summary>px4_fmu-v5x [Total VM Diff: ${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-absolute }} (${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-total-vm-percentage }})]</summary>',
+               '<summary>px4_fmu-v5x [Total VM Diff: ${{ fromJSON(env.V5X-SUMMARY-MAP).vm-absolute }} (${{ fromJSON(env.V5X-SUMMARY-MAP).vm-percentage }})]</summary>',
                '',
                '```',
                `${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-output-encoded }}`,
@@ -113,7 +109,7 @@ jobs:
                '</details>',
                '',
                '<details>',
-               '<summary>px4_fmu-v6x [Total VM Diff: ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-absolute }} (${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-total-vm-percentage }})]</summary>',
+               '<summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} (${{ fromJSON(env.V6X-SUMMARY-MAP).vm-percentage }})]</summary>',
                '',
                '```',
                `${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-output-encoded }}`,
