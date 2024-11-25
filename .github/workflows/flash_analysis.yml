@@ -8,6 +8,10 @@ on:
     branches:
       - '*'
 
+env:
+  MIN_FLASH_POS_DIFF_FOR_COMMENT: 50
+  MIN_FLASH_NEG_DIFF_FOR_COMMENTS: -50
+
 jobs:
   analyze_flash:
     name: FLASH usage analysis
@@ -18,8 +22,10 @@ jobs:
       matrix:
         target: [px4_fmu-v5x, px4_fmu-v6x]
     outputs:
-      px4_fmu-v5x: ${{ steps.gen-output.outputs.output_px4_fmu-v5x }}
-      px4_fmu-v6x: ${{ steps.gen-output.outputs.output_px4_fmu-v6x }}
+      px4_fmu-v5x-bloaty-output-encoded: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-output-encoded }}
+      px4_fmu-v5x-bloaty-summary-map: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-summary-map }}
+      px4_fmu-v6x-bloaty-output-encoded: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-output-encoded }}
+      px4_fmu-v6x-bloaty-summary-map: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-summary-map }}
     steps:
       - uses: actions/checkout@v4
         with:
@@ -58,45 +64,59 @@ jobs:
         run: cp ./build/${{ matrix.target }}_default/${{ matrix.target }}_default.elf ./before-change.elf
 
       - name: bloaty-action
-        uses: carlosperate/bloaty-action@v1.1.0
+        uses: PX4/bloaty-action@v1.0.0
         id: bloaty-step
         with:
-          bloaty-args: -d sections,compileunits -n 0 ./with-change.elf -- ./before-change.elf
+          bloaty-file-args: ./with-change.elf -- ./before-change.elf
+          bloaty-additional-args: -d sections,compileunits -s vm -n 0
           output-to-summary: true
 
       - name: Generate output
         id: gen-output
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "output_${{ matrix.target }}<<$EOF" >> $GITHUB_OUTPUT
+          echo "${{ matrix.target }}-bloaty-output-encoded<<$EOF" >> $GITHUB_OUTPUT
           echo "${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> $GITHUB_OUTPUT
+          echo "$EOF" >> $GITHUB_OUTPUT
+          echo "${{ matrix.target }}-bloaty-summary-map<<$EOF" >> $GITHUB_OUTPUT
+          echo "${{ steps.bloaty-step.outputs.bloaty-summary-map }}" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
 
   post_pr_comment:
     name: Post PR comment
     runs-on: ubuntu-latest
     needs: [analyze_flash]
+    env:
+      V5X-SUMMARY-MAP: ${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-summary-map }}
+      V6X-SUMMARY-MAP: ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-summary-map }}
     steps:
-      - name: If it's a PR add a comment with the bloaty output
-        if: ${{ github.event.pull_request }}
+      - name: If it's a PR and the FLASH diff is large enough, add a comment with the bloaty output
+        if: |
+          github.event.pull_request &&
+          (
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS)
+          )
         uses: actions/github-script@v6
         with:
           script: |
             const comment = [
-               '## FLASH Analysis',
+               '## 🔎 FLASH Analysis',
                '<details>',
-               '<summary>px4_fmu-v5x</summary>',
+               '<summary>px4_fmu-v5x [Total VM Diff: ${{ fromJSON(env.V5X-SUMMARY-MAP).vm-absolute }} (${{ fromJSON(env.V5X-SUMMARY-MAP).vm-percentage }})]</summary>',
                '',
                '```',
-               `${{ needs.analyze_flash.outputs.px4_fmu-v5x }}`,
+               `${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-output-encoded }}`,
                '```',
                '</details>',
                '',
                '<details>',
-               '<summary>px4_fmu-v6x</summary>',
+               '<summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} (${{ fromJSON(env.V6X-SUMMARY-MAP).vm-percentage }})]</summary>',
                '',
                '```',
-               `${{ needs.analyze_flash.outputs.px4_fmu-v6x }}`,
+               `${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-output-encoded }}`,
                '```',
                '</details>'
             ]
