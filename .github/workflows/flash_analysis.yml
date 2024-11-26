@@ -68,7 +68,7 @@ jobs:
         id: bloaty-step
         with:
           bloaty-file-args: ./with-change.elf -- ./before-change.elf
-          bloaty-additional-args: -d sections,compileunits -s vm -n 0
+          bloaty-additional-args: -d sections,compileunits -s vm -n 25
           output-to-summary: true
 
       - name: Generate output
