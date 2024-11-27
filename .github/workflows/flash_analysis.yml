@@ -14,8 +14,8 @@ env:
 
 jobs:
   analyze_flash:
-    name: FLASH usage analysis
-    runs-on: ubuntu-latest
+    name: Analyzing ${{ matrix.target }}
+    runs-on: [runs-on,runner=8cpu-linux-x64,image=ubuntu24-full-x64,"run-id=${{ github.run_id }}",spot=false]
     container:
       image: px4io/px4-dev-nuttx-focal
     strategy:
@@ -35,7 +35,7 @@ jobs:
       - name: Git ownership workaround
         run: git config --system --add safe.directory '*'
 
-      - name: Build
+      - name: Build Target
         run: make ${{ matrix.target }}
 
       - name: Store the ELF with the change
@@ -83,46 +83,56 @@ jobs:
           echo "$EOF" >> $GITHUB_OUTPUT
 
   post_pr_comment:
-    name: Post PR comment
-    runs-on: ubuntu-latest
+    name: Publish Results
+    runs-on: [runs-on,runner=1cpu-linux-x64,image=ubuntu24-full-x64,"run-id=${{ github.run_id }}",spot=false]
     needs: [analyze_flash]
     env:
       V5X-SUMMARY-MAP: ${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-summary-map }}
       V6X-SUMMARY-MAP: ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-summary-map }}
+    if: |
+      github.event.pull_request &&
+      (
+      fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+      fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS) ||
+      fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+      fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS)
+      )
     steps:
-      - name: If it's a PR and the FLASH diff is large enough, add a comment with the bloaty output
-        if: |
-          github.event.pull_request &&
-          (
-          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
-          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS) ||
-          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
-          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS)
-          )
-        uses: actions/github-script@v6
+      - name: Find Comment
+        uses: peter-evans/find-comment@v3
+        id: fc
         with:
-          script: |
-            const comment = [
-               '## 🔎 FLASH Analysis',
-               '<details>',
-               '<summary>px4_fmu-v5x [Total VM Diff: ${{ fromJSON(env.V5X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V5X-SUMMARY-MAP).vm-percentage }} %)]</summary>',
-               '',
-               '```',
-               `${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-output-encoded }}`,
-               '```',
-               '</details>',
-               '',
-               '<details>',
-               '<summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V6X-SUMMARY-MAP).vm-percentage }} %)]</summary>',
-               '',
-               '```',
-               `${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-output-encoded }}`,
-               '```',
-               '</details>'
-            ]
-            github.rest.issues.createComment({
-              issue_number: context.issue.number,
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              body: comment.join('\n')
-            })
+          issue-number: ${{ github.event.pull_request.number }}
+          comment-author: 'github-actions[bot]'
+          body-includes: FLASH Analysis
+
+      - name: Set Build Time
+        id: bt
+        run: |
+          echo "timestamp=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_OUTPUT
+
+      - name: Create or update comment
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          comment-id: ${{ steps.fc.outputs.comment-id }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            ## 🔎 FLASH Analysis
+            <details>
+              <summary>px4_fmu-v5x [Total VM Diff: ${{ fromJSON(env.V5X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V5X-SUMMARY-MAP).vm-percentage }} %)]</summary>
+
+              ```
+              ${{ needs.analyze_flash.outputs.px4_fmu-v5x }}
+              ```
+            </details>
+
+            <details>
+              <summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V6X-SUMMARY-MAP).vm-percentage }} %)]</summary>
+
+              ```
+              ${{ needs.analyze_flash.outputs.px4_fmu-v6x }}
+              ```
+            </details>
+
+            **Updated: _${{ steps.bt.outputs.timestamp }}_**
+          edit-mode: replace
