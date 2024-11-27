@@ -23,9 +23,9 @@ jobs:
       matrix:
         target: [px4_fmu-v5x, px4_fmu-v6x]
     outputs:
-      px4_fmu-v5x-bloaty-output-encoded: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-output-encoded }}
+      px4_fmu-v5x-bloaty-output: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-output }}
       px4_fmu-v5x-bloaty-summary-map: ${{ steps.gen-output.outputs.px4_fmu-v5x-bloaty-summary-map }}
-      px4_fmu-v6x-bloaty-output-encoded: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-output-encoded }}
+      px4_fmu-v6x-bloaty-output: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-output }}
       px4_fmu-v6x-bloaty-summary-map: ${{ steps.gen-output.outputs.px4_fmu-v6x-bloaty-summary-map }}
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +76,7 @@ jobs:
         id: gen-output
         run: |
           EOF=$(dd if=/dev/urandom bs=15 count=1 status=none | base64)
-          echo "${{ matrix.target }}-bloaty-output-encoded<<$EOF" >> $GITHUB_OUTPUT
+          echo "${{ matrix.target }}-bloaty-output<<$EOF" >> $GITHUB_OUTPUT
           echo "${{ steps.bloaty-step.outputs.bloaty-output-encoded }}" >> $GITHUB_OUTPUT
           echo "$EOF" >> $GITHUB_OUTPUT
           echo "${{ matrix.target }}-bloaty-summary-map<<$EOF" >> $GITHUB_OUTPUT
@@ -109,6 +109,7 @@ jobs:
       - name: Create or update comment
         # This can't be moved to the job-level if condition, as GH actions don't allow a job-level if condition to access the env...
         if: |
+          steps.fc.outputs.comment-id != '' ||
           fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
           fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS) ||
           fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
@@ -123,7 +124,7 @@ jobs:
               <summary>px4_fmu-v5x [Total VM Diff: ${{ fromJSON(env.V5X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V5X-SUMMARY-MAP).vm-percentage }} %)]</summary>
 
               ```
-              ${{ needs.analyze_flash.outputs.px4_fmu-v5x }}
+              ${{ needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-output }}
               ```
             </details>
 
@@ -131,7 +132,7 @@ jobs:
               <summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} byte (${{ fromJSON(env.V6X-SUMMARY-MAP).vm-percentage }} %)]</summary>
 
               ```
-              ${{ needs.analyze_flash.outputs.px4_fmu-v6x }}
+              ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-output }}
               ```
             </details>
 
