@@ -59,10 +59,20 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
-        run: make ${{ matrix.target }}_flash-analysis
+        run: |
+          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
+            make ${{ matrix.target }}_flash-analysis
+          else
+            make ${{ matrix.target }}
+          fi
 
       - name: Store the ELF before the change
-        run: cp ./build/${{ matrix.target }}_flash-analysis/${{ matrix.target }}_flash-analysis.elf ./before-change.elf
+        run: |
+          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
+            cp ./build/${{ matrix.target }}_flash-analysis/${{ matrix.target }}_flash-analysis.elf ./before-change.elf
+          else
+            cp ./build/${{ matrix.target }}_default/${{ matrix.target }}_default.elf ./before-change.elf
+          fi
 
       - name: bloaty-action
         uses: PX4/bloaty-action@v1.0.0
