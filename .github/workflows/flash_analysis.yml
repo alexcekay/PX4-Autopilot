@@ -60,7 +60,12 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
-        run: make ${{ matrix.target }}_flash-analysis
+        run: |
+          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
+            make ${{ matrix.target }}_flash-analysis
+          else
+            make ${{ matrix.target }}
+          fi
 
       - name: Store the ELF before the change
         run: cp ./build/**/*.elf ./before-change.elf
