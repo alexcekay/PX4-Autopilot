@@ -37,10 +37,10 @@ jobs:
         run: git config --system --add safe.directory '*'
 
       - name: Build Target
-        run: make ${{ matrix.target }}
+        run: make ${{ matrix.target }}_flash-analysis
 
       - name: Store the ELF with the change
-        run: cp ./build/${{ matrix.target }}_default/${{ matrix.target }}_default.elf ./with-change.elf
+        run: cp ./build/${{ matrix.target }}_flash-analysis/${{ matrix.target }}_flash-analysis.elf ./with-change.elf
 
       - name: Clean previous build
         run: |
@@ -59,10 +59,10 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
-        run: make ${{ matrix.target }}
+        run: make ${{ matrix.target }}_flash-analysis
 
       - name: Store the ELF before the change
-        run: cp ./build/${{ matrix.target }}_default/${{ matrix.target }}_default.elf ./before-change.elf
+        run: cp ./build/${{ matrix.target }}_flash-analysis/${{ matrix.target }}_flash-analysis.elf ./before-change.elf
 
       - name: bloaty-action
         uses: PX4/bloaty-action@v1.0.0
