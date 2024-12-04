@@ -37,7 +37,13 @@ jobs:
         run: git config --system --add safe.directory '*'
 
       - name: Build Target
-        run: make ${{ matrix.target }}_flash-analysis
+        # Use special flash-analysis target if present. Otherwise fallback to the default target.
+        run: |
+          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
+            make ${{ matrix.target }}_flash-analysis
+          else
+            make ${{ matrix.target }}
+          fi
 
       - name: Store the ELF with the change
         run: cp ./build/**/*.elf ./with-change.elf
@@ -60,6 +66,7 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
+        # Use special flash-analysis target if present. Otherwise fallback to the default target.
         run: |
           if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
             make ${{ matrix.target }}_flash-analysis
