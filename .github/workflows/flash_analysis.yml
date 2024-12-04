@@ -37,7 +37,7 @@ jobs:
         run: git config --system --add safe.directory '*'
 
       - name: Build Target
-        # Use special flash-analysis target if present. Otherwise fallback to the default target.
+        # Use special flash-analysis target if present. Otherwise fall back to the default target.
         run: |
           if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
             make ${{ matrix.target }}_flash-analysis
@@ -66,7 +66,7 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
-        # Use special flash-analysis target if present. Otherwise fallback to the default target.
+        # Use special flash-analysis target if present. Otherwise fall back to the default target.
         run: |
           if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
             make ${{ matrix.target }}_flash-analysis
