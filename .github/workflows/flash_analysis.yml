@@ -10,7 +10,7 @@ on:
 
 env:
   MIN_FLASH_POS_DIFF_FOR_COMMENT: 50
-  MIN_FLASH_NEG_DIFF_FOR_COMMENTS: -50
+  MIN_FLASH_NEG_DIFF_FOR_COMMENT: -50
 
 jobs:
   analyze_flash:
@@ -37,7 +37,7 @@ jobs:
         run: git config --system --add safe.directory '*'
 
       - name: Build Target
-        # Use special flash-analysis target if present. Otherwise fallback to the default target.
+        # Use special flash-analysis target if present. Otherwise fall back to the default target.
         run: |
           if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
             make ${{ matrix.target }}_flash-analysis
@@ -46,7 +46,7 @@ jobs:
           fi
 
       - name: Store the ELF with the change
-        # Use special flash-analysis target if present. Otherwise fallback to the default target.
+        # Use special flash-analysis target if present. Otherwise fall back to the default target.
         run: |
           if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
             cp ./build/${{ matrix.target }}_flash-analysis/${{ matrix.target }}_flash-analysis.elf ./with-change.elf
@@ -71,7 +71,7 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
-        # Use special flash-analysis target if present. Otherwise fallback to the default target.
+        # Use special flash-analysis target if present. Otherwise fall back to the default target.
         run: |
           if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
             make ${{ matrix.target }}_flash-analysis
@@ -80,7 +80,7 @@ jobs:
           fi
 
       - name: Store the ELF before the change
-        # Use special flash-analysis target if present. Otherwise fallback to the default target.
+        # Use special flash-analysis target if present. Otherwise fall back to the default target.
         run: |
           if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
             cp ./build/${{ matrix.target }}_flash-analysis/${{ matrix.target }}_flash-analysis.elf ./before-change.elf
@@ -93,7 +93,7 @@ jobs:
         id: bloaty-step
         with:
           bloaty-file-args: ./with-change.elf -- ./before-change.elf
-          bloaty-additional-args: -d sections,compileunits -s vm -n 25
+          bloaty-additional-args: -d sections,compileunits -s vm -n 20
           output-to-summary: true
 
       - name: Generate output
@@ -131,13 +131,13 @@ jobs:
           echo "timestamp=$(date +'%Y-%m-%dT%H:%M:%S')" >> $GITHUB_OUTPUT
 
       - name: Create or update comment
-        # This can't be moved to the job-level if condition, as GH actions don't allow a job-level if condition to access the env.
+        # This can't be moved to the job-level conditions, as GH actions don't allow a job-level if condition to access the env.
         if: |
           steps.fc.outputs.comment-id != '' ||
-          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
-          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS) ||
-          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) > fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
-          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) < fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENTS)
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) >= fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) <= fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) >= fromJSON(env.MIN_FLASH_POS_DIFF_FOR_COMMENT) ||
+          fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-absolute) <= fromJSON(env.MIN_FLASH_NEG_DIFF_FOR_COMMENT)
         uses: peter-evans/create-or-update-comment@v4
         with:
           comment-id: ${{ steps.fc.outputs.comment-id }}
