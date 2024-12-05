@@ -47,9 +47,9 @@ jobs:
           make clean
           make distclean
 
-      - name: If it's a PR checkout the base commit
+      - name: If it's a PR checkout the main branch
         if: ${{ github.event.pull_request }}
-        run: git checkout ${{ github.event.pull_request.base.sha }}
+        run: git checkout main
 
       - name: If it's a push checkout the previous commit
         if: github.event_name == 'push'
