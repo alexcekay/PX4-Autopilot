@@ -155,7 +155,7 @@ jobs:
             </details>
 
             <details>
-              <summary>px4_fmu-v6x [Total VM Diff: ${{ fromJSON(env.V6X-SUMMARY-MAP).vm-absolute }} byte (${{ env.V6X-SUMMARY-MAP-PERC }} %)]</summary>
+              <summary>px4_fmu-v6x [Total VM Diff: ${{ env.V6X-SUMMARY-MAP-ABS }} byte (${{ env.V6X-SUMMARY-MAP-PERC }} %)]</summary>
 
               ```
               ${{ needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-output }}
