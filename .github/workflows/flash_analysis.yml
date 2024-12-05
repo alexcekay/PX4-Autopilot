@@ -37,22 +37,10 @@ jobs:
         run: git config --system --add safe.directory '*'
 
       - name: Build Target
-        # Use special flash-analysis target if present. Otherwise fall back to the default target.
-        run: |
-          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
-            make ${{ matrix.target }}_flash-analysis
-          else
-            make ${{ matrix.target }}
-          fi
+        run: make ${{ matrix.target }}_flash-analysis
 
       - name: Store the ELF with the change
-        # Use special flash-analysis target if present. Otherwise fall back to the default target.
-        run: |
-          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
-            cp ./build/${{ matrix.target }}_flash-analysis/*.elf ./with-change.elf
-          else
-            cp ./build/${{ matrix.target }}_default/*.elf ./with-change.elf
-          fi
+        run: cp ./build/**/*.elf ./with-change.elf
 
       - name: Clean previous build
         run: |
@@ -71,22 +59,10 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
-        # Use special flash-analysis target if present. Otherwise fall back to the default target.
-        run: |
-          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
-            make ${{ matrix.target }}_flash-analysis
-          else
-            make ${{ matrix.target }}
-          fi
+        run: make ${{ matrix.target }}_flash-analysis
 
       - name: Store the ELF before the change
-        # Use special flash-analysis target if present. Otherwise fall back to the default target.
-        run: |
-          if make list_config_targets | grep ${{ matrix.target }}_flash-analysis; then
-            cp ./build/${{ matrix.target }}_flash-analysis/*.elf ./before-change.elf
-          else
-            cp ./build/${{ matrix.target }}_default/*.elf ./before-change.elf
-          fi
+        run: cp ./build/**/*.elf ./before-change.elf
 
       - name: bloaty-action
         uses: PX4/bloaty-action@v1.0.0
