@@ -113,10 +113,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [analyze_flash]
     env:
-      V5X-SUMMARY-MAP-ABS: ${{ fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) }}
-      V5X-SUMMARY-MAP-PERC: ${{ fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-percentage) }}
-      V6X-SUMMARY-MAP-ABS: ${{ fromJSON(fromJSON(env.V5X-SUMMARY-MAP).vm-absolute) }}
-      V6X-SUMMARY-MAP-PERC: ${{ fromJSON(fromJSON(env.V6X-SUMMARY-MAP).vm-percentage) }}
+      V5X-SUMMARY-MAP-ABS: ${{ fromJSON(fromJSON(needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-summary-map).vm-absolute) }}
+      V5X-SUMMARY-MAP-PERC: ${{ fromJSON(fromJSON(needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-summary-map).vm-percentage) }}
+      V6X-SUMMARY-MAP-ABS: ${{ fromJSON(fromJSON(needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-summary-map).vm-absolute) }}
+      V6X-SUMMARY-MAP-PERC: ${{ fromJSON(fromJSON(needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-summary-map).vm-percentage) }}
     if: ${{ github.event.pull_request }}
     steps:
       - name: Find Comment
