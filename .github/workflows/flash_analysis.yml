@@ -37,7 +37,7 @@ jobs:
         run: git config --system --add safe.directory '*'
 
       - name: Build Target
-        run: make ${{ matrix.target }}_flash-analysis_t
+        run: make ${{ matrix.target }}_flash-analysis
 
       - name: Store the ELF with the change
         run: cp ./build/**/*.elf ./with-change.elf
@@ -60,7 +60,7 @@ jobs:
         run: make submodulesupdate
 
       - name: Build
-        run: make ${{ matrix.target }}_flash-analysis_t
+        run: make ${{ matrix.target }}_flash-analysis
 
       - name: Store the ELF before the change
         run: cp ./build/**/*.elf ./before-change.elf
