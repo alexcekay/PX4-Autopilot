@@ -95,7 +95,6 @@ extern void led_on(int led);
 extern void led_off(int led);
 __END_DECLS
 
-
 /************************************************************************************
  * Name: board_peripheral_reset
  *
