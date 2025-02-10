@@ -43,4 +43,5 @@ jobs:
       - name: Testing [${{ matrix.check }}]
         run: |
           . ./_emscripten_sdk/emsdk_env.sh
+          git config --global --add safe.directory '*'
           make ${{ matrix.check }}

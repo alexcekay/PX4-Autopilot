@@ -30,6 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
+#if defined(__GNUC__) && __GNUC__ >= 12
+# pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
 
 #include "ActuatorEffectivenessHelicopter.hpp"
 #include <lib/mathlib/mathlib.h>
@@ -80,7 +83,7 @@ void ActuatorEffectivenessHelicopter::updateParams()
 		return;
 	}
 
-	_geometry.num_swash_plate_servos = math::constrain((int)count, 3, NUM_SWASH_PLATE_SERVOS_MAX);
+	_geometry.num_swash_plate_servos = math::constrain<int32_t>(count, 3, NUM_SWASH_PLATE_SERVOS_MAX);
 
 	for (int i = 0; i < _geometry.num_swash_plate_servos; ++i) {
 		float angle_deg{};
