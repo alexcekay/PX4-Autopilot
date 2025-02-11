@@ -30,9 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  ****************************************************************************/
+#if defined(__GNUC__) && __GNUC__ >= 12
+# pragma GCC diagnostic ignored "-Wdangling-pointer"
+#endif
 
 #include <px4_platform_common/log.h>
-
 #include "ActuatorEffectivenessControlSurfaces.hpp"
 
 using namespace matrix;

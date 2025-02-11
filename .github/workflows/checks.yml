@@ -39,7 +39,7 @@ jobs:
           options: -v ${{ github.workspace }}:/workspace
           run: |
             cd /workspace
-            git config --global --add safe.directory /workspace
+            git config --global --add safe.directory '*'
             make ${{ matrix.check }}
 
       - name: Uploading Coverage to Codecov.io

@@ -88,7 +88,7 @@ def process_target(px4board_file, target_name):
     if platform not in excluded_platforms:
         # get the container based on the platform and toolchain
         if platform == 'posix':
-            container = 'px4io/px4-dev-base-focal:2021-09-08'
+            container = 'alexander738/px4-dev-base-noble:2025-02-10'
             group = 'base'
             if toolchain:
                 if toolchain.startswith('aarch64'):
@@ -100,7 +100,7 @@ def process_target(px4board_file, target_name):
                 else:
                     if verbose: print(f'unmatched toolchain: {toolchain}')
         elif platform == 'nuttx':
-            container = 'px4io/px4-dev-nuttx-focal:2022-08-12'
+            container = 'alexander738/px4-dev-nuttx-noble:2025-02-10'
             group = 'nuttx'
         else:
             if verbose: print(f'unmatched platform: {platform}')
@@ -124,7 +124,7 @@ if(verbose):
 # - Events
 metadata_targets = ['airframe_metadata', 'parameters_metadata', 'extract_events']
 grouped_targets['base'] = {}
-grouped_targets['base']['container'] = 'px4io/px4-dev-base-focal:2021-09-08'
+grouped_targets['base']['container'] = 'alexander738/px4-dev-base-noble:2025-02-10'
 grouped_targets['base']['manufacturers'] = {}
 grouped_targets['base']['manufacturers']['px4'] = []
 grouped_targets['base']['manufacturers']['px4'] += metadata_targets
