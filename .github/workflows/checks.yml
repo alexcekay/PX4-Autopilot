@@ -35,7 +35,7 @@ jobs:
       - name: Building [${{ matrix.check }}]
         uses: addnab/docker-run-action@v3
         with:
-          image: alexander738/px4-dev-nuttx-noble:2025-02-10
+          image: px4io/px4-dev-nuttx-focal:2022-08-12
           options: -v ${{ github.workspace }}:/workspace
           run: |
             cd /workspace
