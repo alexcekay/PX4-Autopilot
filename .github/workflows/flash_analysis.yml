@@ -104,7 +104,7 @@ jobs:
       V5X-SUMMARY-MAP-PERC: ${{ fromJSON(fromJSON(needs.analyze_flash.outputs.px4_fmu-v5x-bloaty-summary-map).vm-percentage) }}
       V6X-SUMMARY-MAP-ABS: ${{ fromJSON(fromJSON(needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-summary-map).vm-absolute) }}
       V6X-SUMMARY-MAP-PERC: ${{ fromJSON(fromJSON(needs.analyze_flash.outputs.px4_fmu-v6x-bloaty-summary-map).vm-percentage) }}
-    if: ${{ github.event.pull_request }} && github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event.pull_request && github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Find Comment
         uses: peter-evans/find-comment@v3
